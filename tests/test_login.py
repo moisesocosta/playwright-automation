@@ -1,11 +1,34 @@
 import pytest
+from playwright.sync_api import expect
 from pages.login_page import LoginPage
+from utils.test_data import LOGIN_CREDENTIALS, ERROR_MESSAGES, URLS
 
+# Dados de teste usando as constantes do test_data.py
 test_data = [
-    ("standard_user", "secret_sauce", True, None),
-    ("locked_out_user", "secret_sauce", False, "Epic sadface: Sorry, this user has been locked out."),
-    ("invalid_user", "secret_sauce", False, "Epic sadface: Username and password do not match any user in this service"),
-    ("standard_user", "wrong_password", False, "Epic sadface: Username and password do not match any user in this service")
+    (
+        LOGIN_CREDENTIALS["valid_user"]["username"],
+        LOGIN_CREDENTIALS["valid_user"]["password"],
+        True,
+        None
+    ),
+    (
+        LOGIN_CREDENTIALS["locked_user"]["username"],
+        LOGIN_CREDENTIALS["locked_user"]["password"],
+        False,
+        ERROR_MESSAGES["locked_out"]
+    ),
+    (
+        LOGIN_CREDENTIALS["invalid_user"]["username"],
+        LOGIN_CREDENTIALS["invalid_user"]["password"],
+        False,
+        ERROR_MESSAGES["invalid_login"]
+    ),
+    (
+        LOGIN_CREDENTIALS["valid_user"]["username"],
+        "wrong_password",
+        False,
+        ERROR_MESSAGES["invalid_login"]
+    )
 ]
 
 @pytest.mark.parametrize("username, password, should_pass, expected_error", test_data)
@@ -16,7 +39,7 @@ def test_login(page, username, password, should_pass, expected_error):
 
     if should_pass:
         # Verify successful login by checking URL
-        expect(page).to_have_url("https://www.saucedemo.com/inventory.html")
+        expect(page).to_have_url(URLS["inventory"])
     else:
         # Verify error message
         error = login_page.get_error_message()
